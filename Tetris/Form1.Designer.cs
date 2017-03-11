@@ -51,7 +51,6 @@
 			this.start_button.Text = "start";
 			this.start_button.UseMnemonic = false;
 			this.start_button.UseVisualStyleBackColor = true;
-			this.start_button.Click += new System.EventHandler(this.start_button_Click);
 			// 
 			// pictureBox1
 			// 
@@ -115,7 +114,6 @@
 			this.button1.TabIndex = 8;
 			this.button1.Text = "button1";
 			this.button1.UseVisualStyleBackColor = true;
-			this.button1.Click += new System.EventHandler(this.button1_Click);
 			// 
 			// label4
 			// 
