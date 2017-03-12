@@ -57,9 +57,11 @@ namespace Tetris
 			Brushes.Green,
 			Brushes.Orange,
 			Brushes.Red,
-			Brushes.Violet,
+			Brushes.Purple,
 			Brushes.Yellow
 		};
+
+		bool stop;
 		public Tetris_game()
 		{
 			int[] cell_size = new int[2] { 20, 20 };
@@ -72,8 +74,8 @@ namespace Tetris
 			int[] cell_size = new int[2] { 20, 20 };
 			field1.clear();
 			field2.clear();
-			figure1 = new Figure(figures[random.Next(6)], colors[random.Next(6)], new int[2] { 0, 0 });
-			figure2 = new Figure(figures[random.Next(6)], colors[random.Next(6)], new int[2] { 0, 0 });
+			figure1 = new Figure(figures[random.Next(6)], colors[random.Next(6)], new int[2] { 4, 0 });
+			//figure2 = new Figure(figures[random.Next(6)], colors[random.Next(6)], new int[2] { 0, 0 });
 			cell_transfer(field1, figure1);
 			//cell_transfer(field2, figure2);
 			
@@ -103,29 +105,38 @@ namespace Tetris
 			{
 				case (orientation.down):
 					figure1.move(0, 1);
-					handle_changes();
+					handle_changes(field1, figure1);
 					break;
 				case (orientation.up):
 					figure1.rotate();
-					handle_changes();
+					handle_changes(field1, figure1);
 					break;
 				case (orientation.right):
 					figure1.move(1, 0);
-					handle_changes();
+					handle_changes(field1, figure1);
 					break;
 				case (orientation.left):
 					figure1.move(-1, 0);
-					handle_changes();
+					handle_changes(field1, figure1);
 					break;
 			}
 			
 		}
 
-		private void handle_changes()
+		// транслируем узменения фигуры на поле
+		private void handle_changes(Field field, Figure figure)
 		{
-			int[,] changes_matrix = figure1.return_changes();
-			int[] coordinates = figure1.lowest_coordinates();
+			int[,] changes_matrix = figure.return_changes();
+			int[] coordinates = figure.lowest_coordinates();
 			int[] cell_coordinates = new int[2];
+			if (check_cells(changes_matrix, coordinates, field, figure))
+			{
+				figure.rebild(figures[random.Next(6)], colors[random.Next(6)], new int[2] { 4, 0 });
+				cell_transfer(field, figure);
+				return;
+			}
+			changes_matrix = figure.return_changes();
+			coordinates = figure.lowest_coordinates();
 			for (int i = 0; i < changes_matrix.GetLength(0); i++)
 			{
 				cell_coordinates[0] = i + coordinates[0];
@@ -134,15 +145,78 @@ namespace Tetris
 					cell_coordinates[1] = j + coordinates[1];
 					if (changes_matrix[i, j] > 0)
 					{
-						field1.new_cell(cell_coordinates, figure1.return_color());
+						field.new_cell(cell_coordinates, figure1.return_color());
 					}
 					if (changes_matrix[i, j] < 0)
 					{
-						field1.remove_cell(cell_coordinates);
+						field.remove_cell(cell_coordinates);
 					}
 				}
 			}
+			if( this.stop)
+			{
+				this.stop = false;
+				figure.rebild(figures[random.Next(6)], colors[random.Next(6)], new int[2] { 4, 0 });
+				cell_transfer(field, figure);
+			}
 		}
+
+		private bool check_cells(int[,] matrix, int[] coordinates, Field field, Figure figure )
+		{
+			int[] cell_coordinates = new int[2];
+			int[] differense;
+			int[] diff_buff = new int[2];
+			for (int i = 0; i < matrix.GetLength(0); i++)
+			{
+				cell_coordinates[0] = i + coordinates[0];
+				for (int j = 0; j < matrix.GetLength(1); j++)
+				{
+					cell_coordinates[1] = j + coordinates[1];
+					if (matrix[i, j] > 0)
+					{
+						differense = out_coordinates(cell_coordinates, field);
+						if (Math.Abs(diff_buff[0]) < Math.Abs(differense[0])) diff_buff[0] = differense[0];
+						if (Math.Abs(diff_buff[1]) < Math.Abs(differense[1])) diff_buff[1] = differense[1];
+						//если уперлись в дно обрабатываем как столкновение
+						if (differense[1] < 0) this.stop = true;
+						if (collision(cell_coordinates, field))
+						{
+							return true;
+						}
+					}
+				}
+			}
+			if (diff_buff[0] == 0 && diff_buff[1] == 0) { }
+			else
+			{
+						//если клетка вышла из поля двигаем фигуру
+						figure.move(diff_buff[0], diff_buff[1]);
+			}
+				return false;		
+		}
+
+		// проверяем столкновение
+		private bool collision(int[] coordinates, Field field )
+		{
+			if (field.cell_exist(coordinates))
+				return true;
+			else return false;
+		}
+
+		// проверяем не  вышла ли фигура за границы поля
+		private int[] out_coordinates(int[] coordinates, Field field)
+		{
+			int[] differense = new int[2];
+			int[] size = field.return_size();
+			if (coordinates[0] >= 0 && coordinates[1] >= 0 && coordinates[0] < size[0] && coordinates[1] < size[1] )
+				return new int[2]{ 0, 0 };
+			if (coordinates[0] < 0) differense[0] = 0 - coordinates[0];
+			if (coordinates[1] < 0) differense[1] = 0 - coordinates[1];
+			if (coordinates[0] > size[0] - 1) differense[0] = size[0] - 1 - coordinates[0];
+			if (coordinates[1] > size[1] - 1) differense[1] = size[1] - 1 - coordinates[1];
+			return differense;
+		}
+
 		public void input()
 		{
 

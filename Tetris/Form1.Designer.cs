@@ -66,8 +66,7 @@
 			// 
 			// pictureBox2
 			// 
-			this.pictureBox2.BackColor = System.Drawing.SystemColors.HighlightText;
-			this.pictureBox2.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
+			this.pictureBox2.BackColor = System.Drawing.SystemColors.Control;
 			this.pictureBox2.Location = new System.Drawing.Point(219, 58);
 			this.pictureBox2.Margin = new System.Windows.Forms.Padding(0);
 			this.pictureBox2.Name = "pictureBox2";

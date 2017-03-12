@@ -11,6 +11,7 @@ namespace Tetris
     {
 		int[] cell_size;
 		Cell[,] field;
+		Cell[,] last_field;
 		int width;
 		int height;
 
@@ -21,11 +22,64 @@ namespace Tetris
 			this.height = height;
 			this.field = new Cell[width, height];
 		}
+
+		public int[] return_size()
+		{
+			int[] size = new int[2] { width, height };
+			return size ;
+		}
+
 		public void new_cell(int[] coordinates, Brush color)
 		{
+			if (coordinates_check(coordinates))
+			{
+			save_last_condition();
 			this.field[coordinates[0], coordinates[1]] = new Cell(cell_size[0], cell_size[1], color);
+			}
 		}
-		public void add_cell(int[] coordinates, Cell cell)
+
+		public void remove_cell(int[] coordinates)
+		{
+			if (coordinates_check(coordinates))
+			{
+			save_last_condition();
+			this.field[coordinates[0], coordinates[1]] = null;
+			}
+		}
+
+		public Cell extract_cell(int[] coordinates) //ошибка если ячейка пуста, необходима проверка перед вызовом
+		{
+			return this.field[coordinates[0], coordinates[1]];
+		}
+		public bool cell_exist(int[] coordinates)
+		{
+			if (coordinates_check(coordinates))
+			{
+				if (field[coordinates[0], coordinates[1]] != null) return true;
+			}
+			return false;
+		}
+		public void clear()
+		{
+			save_last_condition();
+			Array.Clear(field, 0, (height * width));
+		}
+		private void save_last_condition()
+		{
+			this.last_field = new Cell[field.GetLength(0), field.GetLength(1)];
+			Array.Copy(field, last_field, field.Length);
+
+		}
+		private bool coordinates_check(int[] coordinates)
+		{
+			if (coordinates[0] < 0) return false;
+			if (coordinates[1] < 0) return false;
+			if (coordinates[0] > width - 1) return false;
+			if (coordinates[1] > height - 1) return false;
+			else return true;
+		}
+
+		/*public void add_cell(int[] coordinates, Cell cell)
 		{
 			this.field[coordinates[0], coordinates[1]] = cell;
 		}
@@ -35,28 +89,8 @@ namespace Tetris
 			Cell buffer = this.field[coordinates1[0], coordinates1[1]];
 			remove_cell(coordinates1);
 			add_cell(coordinates2, buffer);
-		}
+		}*/
 
-		public void remove_cell(int[] coordinates)
-		{
-			this.field[coordinates[0], coordinates[1]] = null;
-		}
-
-		public Cell extract_cell(int[] coordinates) //ошибка если ячейка пуста, необходима проверка перед вызовом
-		{
-			return this.field[coordinates[0], coordinates[1]];
-		}
-		public bool cell_exist(int[] coordinates)
-		{
-			if (field[coordinates[0], coordinates[1]] != null) return true;
-			else return false;
-		}
-		public void clear()
-		{
-			Array.Clear(field, 0, (height * width));
-		}
-
-		
 		public Bitmap draw()
 		{
 			Bitmap image;

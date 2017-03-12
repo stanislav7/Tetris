@@ -19,8 +19,14 @@ namespace Tetris
 		int[] coordinates;
 		figure_changes changes;
 
-		public Figure (  int[,] matrix, Brush color, int[] coordinates)
-			
+		public Figure (  int[,] matrix, Brush color, int[] coordinates)	
+		{
+			this.matrix = matrix;
+			this.color = color;
+			this.coordinates = coordinates;
+		}
+
+		public void rebild(int[,] matrix, Brush color, int[] coordinates)
 		{
 			this.matrix = matrix;
 			this.color = color;
@@ -82,7 +88,7 @@ namespace Tetris
 					return new int[1, 1] { { 0 } };
 			}
 		}
-		public int[,] coordinates_changed()
+		private int[,] coordinates_changed()
 		{
 			int d_x = coordinates[0] - last_coordinates[0];
 			int d_y = coordinates[1] - last_coordinates[1];
@@ -112,7 +118,7 @@ namespace Tetris
 
 			return diff;
 		}
-		public int[,] matrix_changed()
+		private int[,] matrix_changed()
 		{
 
 			int[,] diff = new int[matrix.GetLength(0), matrix.GetLength(0)];
@@ -140,10 +146,5 @@ namespace Tetris
 			return coord;
 
 		}
-		/*public void rotate()	переделать
-		{
-
-		}
-		*/
 	}
 }
