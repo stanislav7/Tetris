@@ -102,16 +102,20 @@ namespace Tetris
 			switch (key)
 			{
 				case (orientation.down):
-					if (figure1.move(0, 1))handle_changes();
+					figure1.move(0, 1);
+					handle_changes();
 					break;
 				case (orientation.up):
-					if (figure1.move(0, -1)) handle_changes();
+					figure1.rotate();
+					handle_changes();
 					break;
 				case (orientation.right):
-					if (figure1.move(1, 0)) handle_changes();
+					figure1.move(1, 0);
+					handle_changes();
 					break;
 				case (orientation.left):
-					if (figure1.move(-1, 0)) handle_changes();
+					figure1.move(-1, 0);
+					handle_changes();
 					break;
 			}
 			
@@ -119,32 +123,26 @@ namespace Tetris
 
 		private void handle_changes()
 		{
-			switch (figure1.what_changed())
+			int[,] changes_matrix = figure1.return_changes();
+			int[] coordinates = figure1.lowest_coordinates();
+			int[] cell_coordinates = new int[2];
+			for (int i = 0; i < changes_matrix.GetLength(0); i++)
 			{
-				case (figure_changes.coordinates):
-					int[,] changes_matrix = figure1.coordinates_changed();
-					int[] coordinates = figure1.lowest_coordinates();
-					int[] cell_coordinates = new int[2];
-					for (int i = 0; i < changes_matrix.GetLength(0); i++)
+				cell_coordinates[0] = i + coordinates[0];
+				for (int j = 0; j < changes_matrix.GetLength(1); j++)
+				{
+					cell_coordinates[1] = j + coordinates[1];
+					if (changes_matrix[i, j] > 0)
 					{
-						cell_coordinates[0] = i + coordinates[0];
-						for (int j = 0; j < changes_matrix.GetLength(1); j++)
-						{
-							cell_coordinates[1] = j + coordinates[1];
-							if (changes_matrix[i, j] > 0)
-							{
-								field1.new_cell(cell_coordinates, figure1.return_color());
-							}
-							if (changes_matrix[i, j] < 0)
-							{
-								field1.remove_cell(cell_coordinates);
-							}
-						}
+						field1.new_cell(cell_coordinates, figure1.return_color());
 					}
-					break;
+					if (changes_matrix[i, j] < 0)
+					{
+						field1.remove_cell(cell_coordinates);
+					}
+				}
 			}
 		}
-
 		public void input()
 		{
 

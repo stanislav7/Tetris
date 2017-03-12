@@ -38,15 +38,29 @@ namespace Tetris
 		{
 			return matrix;
 		}
-		public bool move(int x, int y)
+		public void move(int x, int y)
 		{
 			save_last_condition();
 			this.changes = figure_changes.coordinates;
 			coordinates[0] += x;
 			coordinates[1] += y;
-			return true;
-
 		}
+
+		public void rotate()
+		{
+			save_last_condition();
+			this.changes = figure_changes.matrix;
+			int[,] buffer = new int[matrix.GetLength(0), matrix.GetLength(1)];
+			for (int i = 0; i < matrix.GetLength(0); i++)
+			{
+				for (int j = 0; j < matrix.GetLength(1); j++)
+				{
+					buffer[matrix.GetLength(1) - 1 - j, i] = matrix[i, j];
+				}
+			}
+			Array.Copy(buffer, matrix, matrix.Length);
+		}
+
 		private void save_last_condition()
 		{
 			this.last_matrix = new int[matrix.GetLength(0), matrix.GetLength(1)];
@@ -56,9 +70,17 @@ namespace Tetris
 			this.last_coordinates = new int[2];
 			Array.Copy(coordinates, last_coordinates, coordinates.Length);
 		}
-		public figure_changes what_changed()
+		public int[,] return_changes()
 		{
-			return changes;
+			switch (changes)
+			{
+				case (figure_changes.coordinates):
+					return coordinates_changed();
+				case (figure_changes.matrix):
+					return matrix_changed();
+				default:
+					return new int[1, 1] { { 0 } };
+			}
 		}
 		public int[,] coordinates_changed()
 		{
@@ -84,10 +106,30 @@ namespace Tetris
 				{
 					if (d_x < 0) i2 = i - d_x; else i2 = i;
 					if (d_y < 0) j2 = j - d_y; else j2 = j;
-					diff[i2, j2] = diff[i2, j2] - last_matrix[i, j];
+					diff[i2, j2] -= last_matrix[i, j];
 				}
 			}
 
+			return diff;
+		}
+		public int[,] matrix_changed()
+		{
+
+			int[,] diff = new int[matrix.GetLength(0), matrix.GetLength(0)];
+			for (int i = 0; i < matrix.GetLength(0); i++)
+			{
+				for (int j = 0; j < matrix.GetLength(1); j++)
+				{
+					diff[i, j] = matrix[i, j];
+				}
+			}
+			for (int i = 0; i < matrix.GetLength(0); i++)
+			{
+				for (int j = 0; j < matrix.GetLength(1); j++)
+				{
+					diff[i, j] -= last_matrix[i, j];
+				}
+			}
 			return diff;
 		}
 		public int[] lowest_coordinates()
