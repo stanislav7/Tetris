@@ -11,7 +11,6 @@ namespace Tetris
     {
 		int[] cell_size;
 		Cell[,] field;
-		Cell[,] last_field;
 		int width;
 		int height;
 
@@ -33,7 +32,6 @@ namespace Tetris
 		{
 			if (coordinates_check(coordinates))
 			{
-			save_last_condition();
 			this.field[coordinates[0], coordinates[1]] = new Cell(cell_size[0], cell_size[1], color);
 			}
 		}
@@ -42,7 +40,6 @@ namespace Tetris
 		{
 			if (coordinates_check(coordinates))
 			{
-			save_last_condition();
 			this.field[coordinates[0], coordinates[1]] = null;
 			}
 		}
@@ -51,6 +48,7 @@ namespace Tetris
 		{
 			return this.field[coordinates[0], coordinates[1]];
 		}
+
 		public bool cell_exist(int[] coordinates)
 		{
 			if (coordinates_check(coordinates))
@@ -59,17 +57,12 @@ namespace Tetris
 			}
 			return false;
 		}
+
 		public void clear()
 		{
-			save_last_condition();
 			Array.Clear(field, 0, (height * width));
 		}
-		private void save_last_condition()
-		{
-			this.last_field = new Cell[field.GetLength(0), field.GetLength(1)];
-			Array.Copy(field, last_field, field.Length);
 
-		}
 		private bool coordinates_check(int[] coordinates)
 		{
 			if (coordinates[0] < 0) return false;

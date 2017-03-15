@@ -5,57 +5,105 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Drawing;
 
+//публичные методы:
+//public void rebild(int[,] matrix, Brush color, int[] coordinates)
+//public void rebild(Figure figure)
+//public int[,] return_matrix()
+//public Brush return_color()
+//public int[] return_coordinates()
+//public Figure_move move(int x, int y)
+//public Figure_move move()
+
 namespace Tetris
 {
-	enum figure_changes { matrix, color, coordinates };
-
-	class Figure 
+	class Figure
 	{
-		int[,] last_matrix;
-		Brush last_color;
-		int[] last_coordinates;
-		int[,] matrix;
-		Brush color;
-		int[] coordinates;
-		figure_changes changes;
 
-		public Figure (  int[,] matrix, Brush color, int[] coordinates)	
+		protected int[,] matrix;
+		protected Brush color;
+		protected int[] coordinates;
+
+
+		public Figure(int[,] matrix, Brush color, int[] coordinates)
 		{
-			this.matrix = matrix;
+			this.matrix = new int[matrix.GetLength(0), matrix.GetLength(1)];
+			Array.Copy(matrix, this.matrix, matrix.Length);
 			this.color = color;
-			this.coordinates = coordinates;
+			this.coordinates = new int[2];
+			Array.Copy(coordinates, this.coordinates, 2);
 		}
+
+		public Figure( Figure figure)
+		{
+			int[,] matrix = figure.return_matrix();
+			this.matrix = new int[matrix.GetLength(0), matrix.GetLength(1)];
+			Array.Copy(matrix, this.matrix, matrix.Length);
+			this.coordinates = new int[2];
+			Array.Copy(figure.return_coordinates(), this.coordinates, 2);
+			this.color = figure.return_color();
+		}
+
+		//публичные методы
 
 		public void rebild(int[,] matrix, Brush color, int[] coordinates)
 		{
-			this.matrix = matrix;
+			this.matrix = new int[matrix.GetLength(0), matrix.GetLength(1)];
+			Array.Copy(matrix, this.matrix, matrix.Length);
 			this.color = color;
-			this.coordinates = coordinates;
+			Array.Copy(coordinates, this.coordinates, 2);
 		}
+
+		public void rebild(Figure figure)
+		{
+			int[,] matrix = figure.return_matrix();
+			this.matrix = null;
+			this.matrix = new int[matrix.GetLength(0), matrix.GetLength(1)];
+			Array.Copy(matrix, this.matrix, matrix.Length);
+			Array.Copy(figure.return_coordinates(), this.coordinates, 2);
+			this.color = figure.return_color();
+		}
+
 		public Brush return_color()
 		{
 			return color;
 		}
+
 		public int[] return_coordinates()
 		{
 			return coordinates;
 		}
+
 		public int[,] return_matrix()
 		{
 			return matrix;
 		}
-		public void move(int x, int y)
+
+		public Figure_move move(int x, int y)
 		{
-			save_last_condition();
-			this.changes = figure_changes.coordinates;
+			Figure_move fmove = figuremove();
+			shift(x, y);
+			fmove.changes(this.coordinates);
+			return fmove;
+		}
+
+		public Figure_move move()
+		{
+			Figure_move fmove = figuremove();
+			rotate(); ;
+			fmove.changes(this.matrix);
+			return fmove;
+		}
+
+		//приватные методы
+
+		private void shift(int x, int y)
+		{
 			coordinates[0] += x;
 			coordinates[1] += y;
 		}
 
-		public void rotate()
-		{
-			save_last_condition();
-			this.changes = figure_changes.matrix;
+		private void rotate()
+		{	
 			int[,] buffer = new int[matrix.GetLength(0), matrix.GetLength(1)];
 			for (int i = 0; i < matrix.GetLength(0); i++)
 			{
@@ -67,84 +115,11 @@ namespace Tetris
 			Array.Copy(buffer, matrix, matrix.Length);
 		}
 
-		private void save_last_condition()
+		private Figure_move figuremove()
 		{
-			this.last_matrix = new int[matrix.GetLength(0), matrix.GetLength(1)];
-			Array.Copy(matrix, last_matrix, matrix.Length);
+			return new Figure_move(this);
+		}
 
-			this.last_color = this.color;
-			this.last_coordinates = new int[2];
-			Array.Copy(coordinates, last_coordinates, coordinates.Length);
-		}
-		public int[,] return_changes()
-		{
-			switch (changes)
-			{
-				case (figure_changes.coordinates):
-					return coordinates_changed();
-				case (figure_changes.matrix):
-					return matrix_changed();
-				default:
-					return new int[1, 1] { { 0 } };
-			}
-		}
-		private int[,] coordinates_changed()
-		{
-			int d_x = coordinates[0] - last_coordinates[0];
-			int d_y = coordinates[1] - last_coordinates[1];
-			int width = matrix.GetLength(0) + Math.Abs(d_x);
-			int height = matrix.GetLength(1) + Math.Abs(d_y);
-			int[,] diff = new int[width, height];
-			int i2;
-			int j2;
-			for (int i = 0; i < matrix.GetLength(0); i++)
-			{
-				for(int j = 0; j < matrix.GetLength(1); j++)
-				{
-					if (d_x > 0) i2 = i + d_x; else i2 = i;
-					if (d_y > 0) j2 = j + d_y; else j2 = j;
-					diff[i2, j2] =  matrix[i, j];
-				}
-			}
-			for (int i = 0; i < matrix.GetLength(0); i++)
-			{
-				for (int j = 0; j < matrix.GetLength(1); j++)
-				{
-					if (d_x < 0) i2 = i - d_x; else i2 = i;
-					if (d_y < 0) j2 = j - d_y; else j2 = j;
-					diff[i2, j2] -= last_matrix[i, j];
-				}
-			}
-
-			return diff;
-		}
-		private int[,] matrix_changed()
-		{
-
-			int[,] diff = new int[matrix.GetLength(0), matrix.GetLength(0)];
-			for (int i = 0; i < matrix.GetLength(0); i++)
-			{
-				for (int j = 0; j < matrix.GetLength(1); j++)
-				{
-					diff[i, j] = matrix[i, j];
-				}
-			}
-			for (int i = 0; i < matrix.GetLength(0); i++)
-			{
-				for (int j = 0; j < matrix.GetLength(1); j++)
-				{
-					diff[i, j] -= last_matrix[i, j];
-				}
-			}
-			return diff;
-		}
-		public int[] lowest_coordinates()
-		{
-			int[] coord = new int[2];
-			coord[0] = Math.Min(coordinates[0], last_coordinates[0]);
-			coord[1] = Math.Min(coordinates[1], last_coordinates[1]);
-			return coord;
-
-		}
+		
 	}
 }

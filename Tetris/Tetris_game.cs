@@ -12,6 +12,7 @@ namespace Tetris
 
 	class Tetris_game
 	{
+		// свойства
 		Field field1;
 		Field field2;
 		Figure figure1;
@@ -62,6 +63,8 @@ namespace Tetris
 		};
 
 		bool stop;
+		//конец свойств
+		//методы
 		public Tetris_game()
 		{
 			int[] cell_size = new int[2] { 20, 20 };
@@ -69,6 +72,7 @@ namespace Tetris
 			field2 = new Field(4, 4, cell_size);
 			random = new Random();
 		}
+
 		public void new_game()
 		{
 			int[] cell_size = new int[2] { 20, 20 };
@@ -80,6 +84,7 @@ namespace Tetris
 			//cell_transfer(field2, figure2);
 			
 		}
+
 		private void cell_transfer(Field field, Figure figure)
 		{
 			int[,] matrix = figure.return_matrix();
@@ -90,90 +95,68 @@ namespace Tetris
 				coordinates[0] = i + fig_coordinates[0];
 				for(int j = 0; j < matrix.GetLength(1); j++)
 				{
-					coordinates[1] = j + fig_coordinates[1]; 
-					if(matrix[i, j] == 1)
+					coordinates[1] = j + fig_coordinates[1];
+					if (matrix[i, j] > 0)
 					{
-						field.new_cell(coordinates, figure.return_color());
+						field.new_cell(coordinates, figure1.return_color());
+					}
+					if (matrix[i, j] < 0)
+					{
+						field.remove_cell(coordinates);
 					}
 				}
 			}
 		}
-
+		
 		public void direction_key(orientation key)
 		{
+			Figure change_matrix;
 			switch (key)
 			{
 				case (orientation.down):
-					figure1.move(0, 1);
-					handle_changes(field1, figure1);
+					change_matrix = new Figure(figure1.move(0, 1));
 					break;
 				case (orientation.up):
-					figure1.rotate();
-					handle_changes(field1, figure1);
+					change_matrix = new Figure(figure1.move());
 					break;
 				case (orientation.right):
-					figure1.move(1, 0);
-					handle_changes(field1, figure1);
+					change_matrix = new Figure(figure1.move(1, 0));
 					break;
 				case (orientation.left):
-					figure1.move(-1, 0);
-					handle_changes(field1, figure1);
+					change_matrix = new Figure(figure1.move(-1, 0));
+					break;
+				default:
+					change_matrix = figure1;
 					break;
 			}
+			handle_changes(field1, change_matrix);
 			
 		}
 
-		private void handle_changes(Field field, Figure figure)
+		private void handle_changes(Field field, Figure figure)//to do сделать нормально
 		{
-			if (check_collisions(field, figure))
+			if (figure_collisions(field, figure))
 			{
-				figure.rebild(figures[random.Next(6)], colors[random.Next(6)], new int[2] { 4, 0 });
-				cell_transfer(field, figure);
+				figure1.rebild(figures[random.Next(6)], colors[random.Next(6)], new int[2] { 4, 0 });//to do сделать нормально
+				cell_transfer(field, figure1);
 				return;
 			}
-			rewrite(field, figure);
+			cell_transfer(field, figure);
 
-			check_for_out(field, figure);
+			figure_out_coordinates(field, figure);
 
 			if ( this.stop)
 			{
 				this.stop = false;
-				figure.rebild(figures[random.Next(6)], colors[random.Next(6)], new int[2] { 4, 0 });
-				cell_transfer(field, figure);
+				figure1.rebild(figures[random.Next(6)], colors[random.Next(6)], new int[2] { 4, 0 });//to do сделать нормально
+				cell_transfer(field, figure1);
 			}
 		}
-
-		// транслируем узменения фигуры на поле
-		private void rewrite(Field field, Figure figure)
+		//проверка столкновения для всей фигуры
+		private bool figure_collisions(Field field, Figure figure)
 		{
-			int[,] changes_matrix = figure.return_changes();
-			int[] coordinates = figure.lowest_coordinates();
-			int[] cell_coordinates = new int[2];
-			
-			//changes_matrix = figure.return_changes();
-			//coordinates = figure.lowest_coordinates();
-			for (int i = 0; i < changes_matrix.GetLength(0); i++)
-			{
-				cell_coordinates[0] = i + coordinates[0];
-				for (int j = 0; j < changes_matrix.GetLength(1); j++)
-				{
-					cell_coordinates[1] = j + coordinates[1];
-					if (changes_matrix[i, j] > 0)
-					{
-						field.new_cell(cell_coordinates, figure1.return_color());
-					}
-					if (changes_matrix[i, j] < 0)
-					{
-						field.remove_cell(cell_coordinates);
-					}
-				}
-			}
-		}
-
-		private bool check_collisions(Field field, Figure figure)
-		{
-			int[,] matrix = figure.return_changes();
-			int[] coordinates = figure.lowest_coordinates();
+			int[,] matrix = figure.return_matrix();
+			int[] coordinates = figure.return_coordinates();
 			int[] cell_coordinates = new int[2];
 			for (int i = 0; i < matrix.GetLength(0); i++)
 			{
@@ -189,11 +172,11 @@ namespace Tetris
 			}
 			return false;
 		}
-
-		private void check_for_out( Field field, Figure figure )
+		// проверка нахождения в поле для всей фигуры
+		private void figure_out_coordinates( Field field, Figure figure)//to do сделать нормально
 		{
-			int[,] matrix = figure.return_changes();
-			int[] coordinates = figure.lowest_coordinates();
+			int[,] matrix = figure.return_matrix();
+			int[] coordinates = figure.return_coordinates();
 			int[] cell_coordinates = new int[2] { 0, 0 };
 			int[] differense = new int[2] { 0, 0 };
 			int[] diff_buff = new int[2] {0, 0};
@@ -208,7 +191,7 @@ namespace Tetris
 						differense = out_coordinates(cell_coordinates, field);
 						if (Math.Abs(diff_buff[0]) < Math.Abs(differense[0])) diff_buff[0] = differense[0];
 						if (Math.Abs(diff_buff[1]) < Math.Abs(differense[1])) diff_buff[1] = differense[1];
-						//если уперлись в дно обрабатываем как столкновение
+						//если уперлись в дно фиксируем
 						if (differense[1] < 0) this.stop = true;
 					}
 				}
@@ -216,12 +199,10 @@ namespace Tetris
 			if (diff_buff[0] == 0 && diff_buff[1] == 0) { }
 			else
 			{
-				//если клетка вышла из поля двигаем фигуру
-				figure.move(diff_buff[0], diff_buff[1]);
-				rewrite(field, figure);
+				//если клетка вышла из поля сдвигаем фигуру вовнутрь 
+				cell_transfer(field, figure1.move(diff_buff[0], diff_buff[1]));	//to do сделать нормально
 			}
 		}
-
 		// проверяем столкновение
 		private bool collision(int[] coordinates, Field field )
 		{
@@ -229,8 +210,7 @@ namespace Tetris
 				return true;
 			else return false;
 		}
-
-		// проверяем не  вышла ли фигура за границы поля
+		// проверяем не  вышла ли клетка за границы поля
 		private int[] out_coordinates(int[] coordinates, Field field)
 		{
 			int[] differense = new int[2];
