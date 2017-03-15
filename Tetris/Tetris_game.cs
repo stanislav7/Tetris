@@ -7,8 +7,6 @@ using System.Drawing;
 
 namespace Tetris
 {
-	enum fig_type { I, J, L, O, S, T, Z};
-	enum orientation { up, right, left, down};
 
 	class Tetris_game
 	{
@@ -62,7 +60,7 @@ namespace Tetris
 			Brushes.Yellow
 		};
 
-		bool stop;
+		bool moved_down;
 		//конец свойств
 		//методы
 		public Tetris_game()
@@ -115,46 +113,82 @@ namespace Tetris
 			{
 				case (orientation.down):
 					change_matrix = new Figure(figure1.move(0, 1));
+					moved_down = true;
 					break;
 				case (orientation.up):
 					change_matrix = new Figure(figure1.move());
+					moved_down = false;
 					break;
 				case (orientation.right):
 					change_matrix = new Figure(figure1.move(1, 0));
+					moved_down = false;
 					break;
 				case (orientation.left):
 					change_matrix = new Figure(figure1.move(-1, 0));
+					moved_down = false;
 					break;
 				default:
 					change_matrix = figure1;
+					moved_down = false;
 					break;
 			}
-			handle_changes(field1, change_matrix);
+			handle_changes(field1, change_matrix, figure1);
 			
 		}
 
-		private void handle_changes(Field field, Figure figure)//to do сделать нормально
+		//очень сложный и запутанный метод управления движением
+		private void handle_changes(Field field, Figure change_matrix, Figure mother_fig)
 		{
-			if (figure_collisions(field, figure))
+			List<int[]> collisions = new List<int[]>();
+			collisions.AddRange (figure_collisions(field, change_matrix));
+			if (collisions.Count > 0)
 			{
-				figure1.rebild(figures[random.Next(6)], colors[random.Next(6)], new int[2] { 4, 0 });//to do сделать нормально
-				cell_transfer(field, figure1);
+				//возвращаем фигуру в прежнее состояние
+				mother_fig.make_backup();
+				//если столкнулись сверху фиксируем
+				if (moved_down)
+				{
+					moved_down = false;
+					mother_fig.rebild(figures[random.Next(6)], colors[random.Next(6)], new int[2] { 4, 0 });
+					cell_transfer(field, mother_fig);
+				}
+
 				return;
 			}
-			cell_transfer(field, figure);
 
-			figure_out_coordinates(field, figure);
-
-			if ( this.stop)
+			int[]outrange = figure_out_coordinates(field, change_matrix, mother_fig);
+			if (outrange[0] == 0 && outrange[1] == 0) { }
+			else
 			{
-				this.stop = false;
-				figure1.rebild(figures[random.Next(6)], colors[random.Next(6)], new int[2] { 4, 0 });//to do сделать нормально
-				cell_transfer(field, figure1);
+				//если клетка вышла из поля сдвигаем фигуру вовнутрь 
+				Figure change_matrix2 = new Figure(mother_fig.move(outrange[0], outrange[1]));
+				change_matrix2.addition(change_matrix);
+				change_matrix = change_matrix2;
+				//опять проверяем на столкновения
+				collisions.Clear();
+				collisions.AddRange(figure_collisions(field, change_matrix));
+				if (collisions.Count > 0)
+				{
+					//возвращаем фигуру в прежнее состояние
+					mother_fig.make_backup();
+					return;
+				}
 			}
+			//если уперлись в дно фиксируем
+			if (outrange[1] < 0)
+			{
+				mother_fig.rebild(figures[random.Next(6)], colors[random.Next(6)], new int[2] { 4, 0 });
+				cell_transfer(field, mother_fig);
+			}
+
+			cell_transfer(field, change_matrix);
+		
 		}
 		//проверка столкновения для всей фигуры
-		private bool figure_collisions(Field field, Figure figure)
+		private List<int[]> figure_collisions(Field field, Figure figure)
 		{
+			List < int[] >collisions = new List<int[]>();
+			collisions.Clear();
 			int[,] matrix = figure.return_matrix();
 			int[] coordinates = figure.return_coordinates();
 			int[] cell_coordinates = new int[2];
@@ -166,14 +200,14 @@ namespace Tetris
 					cell_coordinates[1] = j + coordinates[1];
 					if (matrix[i, j] > 0)
 					{
-						if (collision(cell_coordinates, field)) return true;
+						if (collision(cell_coordinates, field)) collisions.Add(new int[2] { cell_coordinates[0], cell_coordinates[1] });
 					}
 				}
 			}
-			return false;
+			return collisions;
 		}
-		// проверка нахождения в поле для всей фигуры
-		private void figure_out_coordinates( Field field, Figure figure)//to do сделать нормально
+		// проверка нахождения в поле для всей фигуры 
+		private int[] figure_out_coordinates( Field field, Figure figure, Figure mother_fig)
 		{
 			int[,] matrix = figure.return_matrix();
 			int[] coordinates = figure.return_coordinates();
@@ -191,17 +225,10 @@ namespace Tetris
 						differense = out_coordinates(cell_coordinates, field);
 						if (Math.Abs(diff_buff[0]) < Math.Abs(differense[0])) diff_buff[0] = differense[0];
 						if (Math.Abs(diff_buff[1]) < Math.Abs(differense[1])) diff_buff[1] = differense[1];
-						//если уперлись в дно фиксируем
-						if (differense[1] < 0) this.stop = true;
 					}
 				}
 			}
-			if (diff_buff[0] == 0 && diff_buff[1] == 0) { }
-			else
-			{
-				//если клетка вышла из поля сдвигаем фигуру вовнутрь 
-				cell_transfer(field, figure1.move(diff_buff[0], diff_buff[1]));	//to do сделать нормально
-			}
+			return diff_buff;
 		}
 		// проверяем столкновение
 		private bool collision(int[] coordinates, Field field )
@@ -223,13 +250,14 @@ namespace Tetris
 			if (coordinates[1] > size[1] - 1) differense[1] = size[1] - 1 - coordinates[1];
 			return differense;
 		}
-
+		
 		public void input()
 		{
 
 		}
 		public Bitmap output()
 		{
+			figure1.save_backup();
 			return field1.draw();
 		}
 		private void game()

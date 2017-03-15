@@ -22,6 +22,7 @@ namespace Tetris
 		protected int[,] matrix;
 		protected Brush color;
 		protected int[] coordinates;
+		Figure backup;
 
 
 		public Figure(int[,] matrix, Brush color, int[] coordinates)
@@ -35,9 +36,9 @@ namespace Tetris
 
 		public Figure( Figure figure)
 		{
-			int[,] matrix = figure.return_matrix();
-			this.matrix = new int[matrix.GetLength(0), matrix.GetLength(1)];
-			Array.Copy(matrix, this.matrix, matrix.Length);
+			int[,] matrix1 = figure.return_matrix();
+			this.matrix = new int[matrix1.GetLength(0), matrix1.GetLength(1)];
+			Array.Copy(matrix1, this.matrix, matrix1.Length);
 			this.coordinates = new int[2];
 			Array.Copy(figure.return_coordinates(), this.coordinates, 2);
 			this.color = figure.return_color();
@@ -94,6 +95,29 @@ namespace Tetris
 			return fmove;
 		}
 
+		public void save_backup()
+		{
+			this.backup = null;
+			this.backup = new Figure(this);
+		}
+
+		public void make_backup()
+		{
+			this.rebild(this.backup);
+		}
+		//сложение матриц фигур
+		public void addition(Figure figure)
+		{
+			int[,] buffer = figure.return_matrix();
+			for (int i = 0; i < buffer.GetLength(0); i++)
+			{
+				for (int j = 0; j < buffer.GetLength(1); j++)
+				{
+					this.matrix[i, j] += buffer[i, j];
+				}
+			}
+		}
+
 		//приватные методы
 
 		private void shift(int x, int y)
@@ -120,6 +144,5 @@ namespace Tetris
 			return new Figure_move(this);
 		}
 
-		
 	}
 }
