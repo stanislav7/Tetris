@@ -44,6 +44,12 @@ namespace Tetris
 			}
 		}
 
+		public void move_cell(int[] coordinates, int x, int y)//ошибка если ячейка пуста, необходима проверка перед вызовом
+		{
+			field[coordinates[0] + x, coordinates[1] + y] = field[coordinates[0], coordinates[1]];
+			remove_cell(coordinates);
+		}
+
 		public Cell extract_cell(int[] coordinates) //ошибка если ячейка пуста, необходима проверка перед вызовом
 		{
 			return this.field[coordinates[0], coordinates[1]];

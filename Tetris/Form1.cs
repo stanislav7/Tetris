@@ -23,6 +23,7 @@ namespace Tetris
 			
 			game.new_game();
 			pictureBox1.Image = game.output();
+			pictureBox2.Image = game.output2();
 		}
 
 		private void Form1_KeyDown(object sender, KeyEventArgs e)
@@ -43,6 +44,7 @@ namespace Tetris
 					break;
 			}
 			pictureBox1.Image = game.output();
+			pictureBox2.Image = game.output2();
 		}
 	}
 }

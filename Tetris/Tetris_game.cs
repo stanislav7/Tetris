@@ -77,11 +77,18 @@ namespace Tetris
 			int[] cell_size = new int[2] { 20, 20 };
 			field1.clear();
 			field2.clear();
-			figure1 = new Figure(figures[random.Next(6)], colors[random.Next(6)], new int[2] { 4, 0 });
-			//figure2 = new Figure(figures[random.Next(6)], colors[random.Next(6)], new int[2] { 0, 0 });
+			int type = random.Next(6);
+			figure1 = new Figure(figures[type], colors[type], new int[2] { 4, 0 });
+			type = random.Next(6);
+			figure2 = new Figure(figures[type], colors[type], new int[2] { 0, 0 });
 			cell_transfer(field1, figure1);
-			//cell_transfer(field2, figure2);
+			cell_transfer(field2, figure2);
 			
+		}
+
+		private Brush get_color(int color)
+		{
+			return this.colors[color];
 		}
 
 		private void cell_transfer(Field field, Figure figure)
@@ -97,7 +104,7 @@ namespace Tetris
 					coordinates[1] = j + fig_coordinates[1];
 					if (matrix[i, j] > 0)
 					{
-						field.new_cell(coordinates, figure1.return_color());
+						field.new_cell(coordinates, figure.return_color());
 					}
 					if (matrix[i, j] < 0)
 					{
@@ -150,8 +157,7 @@ namespace Tetris
 				if (moved_down)
 				{
 					moved_down = false;
-					mother_fig.rebild(figures[random.Next(6)], colors[random.Next(6)], new int[2] { 4, 0 });
-					cell_transfer(field, mother_fig);
+					next_figure();
 				}
 
 				return;
@@ -178,8 +184,7 @@ namespace Tetris
 			//если уперлись в дно фиксируем
 			if (outrange[1] < 0)
 			{
-				mother_fig.rebild(figures[random.Next(6)], colors[random.Next(6)], new int[2] { 4, 0 });
-				cell_transfer(field, mother_fig);
+				next_figure();
 			}
 
 			cell_transfer(field, change_matrix);
@@ -251,6 +256,57 @@ namespace Tetris
 			if (coordinates[1] > size[1] - 1) differense[1] = size[1] - 1 - coordinates[1];
 			return differense;
 		}
+		//
+		private void next_figure()
+		{
+			remove_full_lines(field1);
+			figure1.rebild(figure2);
+			figure1.move(4, 0);
+			cell_transfer(field1, figure1);
+			int type = random.Next(6);
+			figure2.rebild(figures[type], colors[type], new int[2] { 0, 0 });
+			for(int i = random.Next(3); i > 0; i--)
+			{
+				figure2.move();
+			}
+			field2.clear();
+			cell_transfer(field2, figure2);
+		}
+
+		private void remove_full_lines(Field field)
+		{
+			int shift = 0;
+			for (int i = field.return_size()[1] - 1; i >= 0; i--)
+			{
+				
+				int quantity = 0;
+				for (int j = 0; j < field.return_size()[0]; j++)
+				{
+					if (field.cell_exist(new int[2] { j, i }))
+					{
+						quantity++;
+					}
+				}
+				if (quantity == 10)
+				{
+					for (int j = 0; j < field.return_size()[0]; j++)
+					{
+						field.remove_cell(new int[2] { j, i });
+					}
+					shift++;
+				}
+				else if(shift > 0)
+				{
+					for (int j = 0; j < field.return_size()[0]; j++)
+					{
+						if(field.cell_exist(new int[2] { j, i }))
+						{
+							field.move_cell(new int[2] { j, i }, 0, shift);
+						}
+					}
+				}
+			}
+		}
 		
 		public void input()
 		{
@@ -260,6 +316,11 @@ namespace Tetris
 		{
 			figure1.save_backup();
 			return field1.draw();
+		}
+
+		public Bitmap output2()
+		{
+			return field2.draw();
 		}
 		private void game()
 		{
