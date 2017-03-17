@@ -81,7 +81,7 @@ namespace Tetris
 
 		public Figure_move move(int x, int y)
 		{
-			Figure_move fmove = figuremove();
+			Figure_move fmove = new Figure_move(this);
 			shift(x, y);
 			fmove.changes(this.coordinates);
 			return fmove;
@@ -89,7 +89,7 @@ namespace Tetris
 
 		public Figure_move move()
 		{
-			Figure_move fmove = figuremove();
+			Figure_move fmove = new Figure_move(this);
 			rotate(); ;
 			fmove.changes(this.matrix);
 			return fmove;
@@ -138,11 +138,5 @@ namespace Tetris
 			}
 			Array.Copy(buffer, matrix, matrix.Length);
 		}
-
-		private Figure_move figuremove()
-		{
-			return new Figure_move(this);
-		}
-
 	}
 }

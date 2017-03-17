@@ -62,6 +62,8 @@ namespace Tetris
 		};
 
 		bool moved_down;
+		int score;
+		bool game_over;
 		//конец свойств
 		//методы
 		public Tetris_game()
@@ -74,12 +76,15 @@ namespace Tetris
 
 		public void new_game()
 		{
+			game_over = false;
 			int[] cell_size = new int[2] { 20, 20 };
 			field1.clear();
 			field2.clear();
-			int type = random.Next(6);
+			figure1 = null;
+			figure2 = null;
+			int type = random.Next(7);
 			figure1 = new Figure(figures[type], colors[type], new int[2] { 4, 0 });
-			type = random.Next(6);
+			type = random.Next(7);
 			figure2 = new Figure(figures[type], colors[type], new int[2] { 0, 0 });
 			cell_transfer(field1, figure1);
 			cell_transfer(field2, figure2);
@@ -262,10 +267,14 @@ namespace Tetris
 			remove_full_lines(field1);
 			figure1.rebild(figure2);
 			figure1.move(4, 0);
+			if (figure_collisions(field1, figure1).Count > 0)
+			{
+				this.game_over = true;
+			}
 			cell_transfer(field1, figure1);
-			int type = random.Next(6);
+			int type = random.Next(7);
 			figure2.rebild(figures[type], colors[type], new int[2] { 0, 0 });
-			for(int i = random.Next(3); i > 0; i--)
+			for(int i = random.Next(4); i > 0; i--)
 			{
 				figure2.move();
 			}
@@ -306,12 +315,9 @@ namespace Tetris
 					}
 				}
 			}
+			score = Convert.ToInt32(Math.Pow(shift, 2));
 		}
 		
-		public void input()
-		{
-
-		}
 		public Bitmap output()
 		{
 			figure1.save_backup();
@@ -322,9 +328,17 @@ namespace Tetris
 		{
 			return field2.draw();
 		}
-		private void game()
-		{
 
+		public int return_score()
+		{
+			int buffer = score;
+			score = 0;
+			return buffer;
+		}
+
+		public bool is_over()
+		{
+			return game_over;
 		}
 	}
 }
