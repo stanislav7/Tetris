@@ -105,8 +105,11 @@ namespace Tetris
 		{
 			this.rebild(this.backup);
 		}
-		//сложение матриц фигур
-		public void addition(Figure figure)
+
+		//TODO ПЕРЕДЕЛАТЬ
+
+		//Сделать класс матрица поддерживающий соответствующие операции
+		/*public void addition(Figure figure)
 		{
 			int[,] buffer = figure.return_matrix();
 			for (int i = 0; i < buffer.GetLength(0); i++)
@@ -116,7 +119,8 @@ namespace Tetris
 					this.matrix[i, j] += buffer[i, j];
 				}
 			}
-		}
+		}*/
+
 
 		//приватные методы
 

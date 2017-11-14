@@ -95,7 +95,7 @@ namespace Tetris
 		{
 			return this.colors[color];
 		}
-
+		// использовать методы класса матрица
 		private void cell_transfer(Field field, Figure figure)
 		{
 			int[,] matrix = figure.return_matrix();
@@ -152,13 +152,14 @@ namespace Tetris
 		//очень сложный и запутанный метод управления движением
 		private void handle_changes(Field field, Figure change_matrix, Figure mother_fig)
 		{
+			//проверяем пройзошло ли столкновение
 			List<int[]> collisions = new List<int[]>();
 			collisions.AddRange (figure_collisions(field, change_matrix));
 			if (collisions.Count > 0)
 			{
 				//возвращаем фигуру в прежнее состояние
 				mother_fig.make_backup();
-				//если столкнулись сверху фиксируем
+				//если столкнулись сверху
 				if (moved_down)
 				{
 					moved_down = false;
@@ -167,15 +168,19 @@ namespace Tetris
 
 				return;
 			}
-
-			int[]outrange = figure_out_coordinates(field, change_matrix, mother_fig);
+			//проверяем вышла ли фигура за пределы поля
+			int[]outrange = figure_out_coordinates(field, change_matrix);
 			if (outrange[0] == 0 && outrange[1] == 0) { }
 			else
 			{
-				//если клетка вышла из поля сдвигаем фигуру вовнутрь 
+				//если фигура вышла из поля сдвигаем фигуру вовнутрь 
 				Figure change_matrix2 = new Figure(mother_fig.move(outrange[0], outrange[1]));
-				change_matrix2.addition(change_matrix);
-				change_matrix = change_matrix2;
+				
+				//TODO ПЕРЕДЕЛАТЬ
+				
+				//НАУЧИТЬ СКЛАДЫВАТЬ СО СМЕЩЕНИЕМ
+				/*change_matrix2.addition(change_matrix);
+				change_matrix = change_matrix2;*/
 				//опять проверяем на столкновения
 				collisions.Clear();
 				collisions.AddRange(figure_collisions(field, change_matrix));
@@ -186,12 +191,12 @@ namespace Tetris
 					return;
 				}
 			}
-			//если уперлись в дно фиксируем
+			//если фигура уперлась в дно
 			if (outrange[1] < 0)
 			{
 				next_figure();
 			}
-
+			//вносим изменения в поле
 			cell_transfer(field, change_matrix);
 		
 		}
@@ -217,8 +222,8 @@ namespace Tetris
 			}
 			return collisions;
 		}
-		// проверка нахождения в поле для всей фигуры 
-		private int[] figure_out_coordinates( Field field, Figure figure, Figure mother_fig)
+		// проверка нахождения в поле для всей фигуры  и вычисление выхода за пределы (предполагается, что размер фигуры меньше размера поля)
+		private int[] figure_out_coordinates( Field field, Figure figure)
 		{
 			int[,] matrix = figure.return_matrix();
 			int[] coordinates = figure.return_coordinates();
@@ -244,22 +249,13 @@ namespace Tetris
 		// проверяем столкновение
 		private bool collision(int[] coordinates, Field field )
 		{
-			if (field.cell_exist(coordinates))
-				return true;
+			if (field.cell_exist(coordinates))return true;
 			else return false;
 		}
 		// проверяем не  вышла ли клетка за границы поля
 		private int[] out_coordinates(int[] coordinates, Field field)
 		{
-			int[] differense = new int[2];
-			int[] size = field.return_size();
-			if (coordinates[0] >= 0 && coordinates[1] >= 0 && coordinates[0] < size[0] && coordinates[1] < size[1] )
-				return new int[2]{ 0, 0 };
-			if (coordinates[0] < 0) differense[0] = 0 - coordinates[0];
-			if (coordinates[1] < 0) differense[1] = 0 - coordinates[1];
-			if (coordinates[0] > size[0] - 1) differense[0] = size[0] - 1 - coordinates[0];
-			if (coordinates[1] > size[1] - 1) differense[1] = size[1] - 1 - coordinates[1];
-			return differense;
+			return field.coordinates_check(coordinates);
 		}
 		//
 		private void next_figure()

@@ -67,7 +67,7 @@ namespace Tetris
 		{
 			if (!this.paused)
 			{
-				game.direction_key(orientation.down);
+				//game.direction_key(orientation.down);
 				turn();
 			}
 

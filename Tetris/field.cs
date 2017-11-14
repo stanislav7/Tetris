@@ -10,7 +10,7 @@ namespace Tetris
     class Field
     {
 		int[] cell_size;
-		Cell[,] field;
+		Cell[,] field;// теперь это будет матрица?
 		int width;
 		int height;
 
@@ -30,7 +30,7 @@ namespace Tetris
 
 		public void new_cell(int[] coordinates, Brush color)
 		{
-			if (coordinates_check(coordinates))
+			if (coordinates_check_bool(coordinates))
 			{
 			this.field[coordinates[0], coordinates[1]] = new Cell(cell_size[0], cell_size[1], color);
 			}
@@ -38,7 +38,7 @@ namespace Tetris
 
 		public void remove_cell(int[] coordinates)
 		{
-			if (coordinates_check(coordinates))
+			if (coordinates_check_bool(coordinates))
 			{
 			this.field[coordinates[0], coordinates[1]] = null;
 			}
@@ -57,8 +57,9 @@ namespace Tetris
 
 		public bool cell_exist(int[] coordinates)
 		{
-			if (coordinates_check(coordinates))
+			if (coordinates_check_bool(coordinates))
 			{
+				if (coordinates[0] > this.width - 1 || coordinates[1] > this.height - 1) return false;
 				if (field[coordinates[0], coordinates[1]] != null) return true;
 			}
 			return false;
@@ -69,13 +70,22 @@ namespace Tetris
 			Array.Clear(field, 0, (height * width));
 		}
 
-		private bool coordinates_check(int[] coordinates)
+		private bool coordinates_check_bool(int[] coordinates)
 		{
-			if (coordinates[0] < 0) return false;
-			if (coordinates[1] < 0) return false;
-			if (coordinates[0] > width - 1) return false;
-			if (coordinates[1] > height - 1) return false;
-			else return true;
+			int[] something = coordinates_check(coordinates);
+			if (something[0] == 0 && something[1] == 0) return true;
+			else return false;
+		}
+		public int[] coordinates_check(int[] coordinates)
+		{
+			int[] differense = new int[2];
+			if (coordinates[0] >= 0 && coordinates[1] >= 0 && coordinates[0] < this.width && coordinates[1] < this.height)
+				return new int[2] { 0, 0 };
+			if (coordinates[0] < 0) differense[0] = 0 - coordinates[0];
+			if (coordinates[1] < 0) differense[1] = 0 - coordinates[1];
+			if (coordinates[0] > this.width - 1) differense[0] = this.width - 1 - coordinates[0];
+			if (coordinates[1] > this.height - 1) differense[1] = this.height - 1 - coordinates[1];
+			return differense;
 		}
 
 		/*public void add_cell(int[] coordinates, Cell cell)
