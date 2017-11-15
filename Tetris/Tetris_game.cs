@@ -8,6 +8,7 @@ using System.Drawing;
 namespace Tetris
 {
 	enum orientation { up, right, left, down};
+	struct coordinates { public int x, y; };
 
 	class Tetris_game
 	{
